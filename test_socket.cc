@@ -57,9 +57,26 @@ void test_client_message_communication() {
 
 void test_server_message_communication() {
     begin_test();
+
+    Socket s1(2222);
+    Socket s2(2223);
+
+    Address destination("localhost", htons(2223));
+    ClientMessage client_message(0x42, 'c');
+    ServerMessage to_send(client_message, "DEF");
+    s1.send(to_send, destination);
+
+    ServerMessage message = s2.receiveFromServer();
+
+    check_equal<uint64_t>(message.client_message.timestamp, 0x42,
+            "Got the correct timestamp.");
+    check_equal<char>(message.client_message.character, 'c',
+            "Got the correct character.");
+    check_equal<std::string>(message.contents, "DEF", "Got the correct string");
 }
 
 int main() {
     test_constructor();
     test_client_message_communication();
+    test_server_message_communication();
 }

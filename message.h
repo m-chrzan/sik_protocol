@@ -42,6 +42,9 @@ struct ServerMessage : Message {
     ClientMessage client_message;
     std::string contents;
 
+    ServerMessage(ClientMessage client_message, std::string contents) :
+        client_message(client_message), contents(contents) {}
+
     ServerMessage(uint64_t timestamp, char character, std::string contents) :
         client_message(timestamp, character), contents(contents) {}
 

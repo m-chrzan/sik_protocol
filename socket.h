@@ -49,6 +49,16 @@ public:
                 sizeof(dest_addr));
     }
 
+    void send(ServerMessage &message, Address address) {
+        uint8_t buffer[64 * 1024];
+        size_t length = message.to_bytes(buffer);
+
+        struct sockaddr_in dest_addr = address.create_sockaddr_struct();
+
+        sendto(fd_, buffer, length, 0, (struct sockaddr *)&dest_addr,
+                sizeof(dest_addr));
+    }
+
     std::pair<ClientMessage, Address> receiveFromClient() {
         struct sockaddr_in client_addr;
         uint8_t buffer[9];
@@ -59,6 +69,13 @@ public:
         in_addr_t address = client_addr.sin_addr.s_addr;
         in_port_t port = client_addr.sin_port;
         return std::make_pair(ClientMessage(buffer), Address(address, port));
+    }
+
+    ServerMessage receiveFromServer() {
+        uint8_t buffer[64 * 1024];
+        recvfrom(fd_, buffer, 64 * 1024, 0, NULL, NULL);
+
+        return ServerMessage(buffer);
     }
 
 private:
