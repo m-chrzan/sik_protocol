@@ -13,10 +13,16 @@ void check_argc(int argc, char *program_name) {
 }
 
 uint64_t get_timestamp(char *timestamp_str) {
-    uint64_t timestamp = boost::lexical_cast<uint64_t>(timestamp_str);
+    uint64_t timestamp;
+    try {
+        timestamp = boost::lexical_cast<uint64_t>(timestamp_str);
+    } catch (std::exception e) {
+        std::cerr << "Timestamp has to be a number." << std::endl;
+        exit(1);
+    }
 
     if (timestamp >= 71728934400) {
-        std::cerr << "Timestamp has to come from a year before 4243"
+        std::cerr << "Timestamp has to be at least 0 and come from a year before 4243"
                   << std::endl;
         exit(1);
     }
@@ -25,7 +31,15 @@ uint64_t get_timestamp(char *timestamp_str) {
 }
 
 in_port_t get_port(char *port_str) {
-    return boost::lexical_cast<uint16_t>(port_str);
+    uint16_t port;
+    try {
+        port = boost::lexical_cast<uint16_t>(port_str);
+    } catch (std::exception e) {
+        std::cerr << "Port has to be a number." << std::endl;
+        exit(1);
+    }
+
+    return port;
 }
 
 Client parse_args(int argc, char *argv[]) {

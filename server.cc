@@ -41,7 +41,12 @@ Server parse_args(int argc, char *argv[]) {
 
     std::string contents = get_contents(argv[2]);
 
-    return Server(port, contents);
+    try {
+        return Server(port, contents);
+    } catch (AddressNotAvailable e) {
+        std::cerr << "Port not available." << std::endl;
+        exit(1);
+    }
 }
 
 int main(int argc, char *argv[]) {
