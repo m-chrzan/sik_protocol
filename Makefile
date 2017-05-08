@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-Wall -g -O2
+CXXFLAGS=-Wall -g -O2 -std=c++14
 
 SRCS=server.cc client.cc
 TESTS=test_socket.cc
