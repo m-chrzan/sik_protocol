@@ -134,7 +134,7 @@ public:
 
         Address address(server_addr.sin_addr.s_addr, server_addr.sin_port);
 
-        if (rv < 10) {
+        if (rv < 10 || buffer[rv - 1] != 0) {
             throw InvalidServerMessage(address);
         }
 
