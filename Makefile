@@ -4,7 +4,9 @@ CXXFLAGS=-Wall -g -O2
 SRCS=server.cc client.cc
 TESTS=test_socket.cc
 
-all: client test_socket
+all: client test_socket server
+
+server: server.cc server.h
 
 client: client.cc client.h
 

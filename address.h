@@ -43,6 +43,14 @@ struct Address {
         freeaddrinfo(addr_result);
     }
 
+    bool operator!=(const Address& other) const {
+        return address != other.address || port != other.port;
+    }
+
+    bool operator<(const Address& other) const {
+        return address < other.address || port < other.port;
+    }
+
     struct sockaddr_in create_sockaddr_struct() {
         struct sockaddr_in addr;
         addr.sin_family = AF_INET;

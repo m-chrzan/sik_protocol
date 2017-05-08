@@ -1,10 +1,14 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <exception>
+#include <iostream>
 
+#include <exception>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <poll.h>
+#include <vector>
+#include <errno.h>
 
 #include "address.h"
 #include "message.h"
@@ -13,6 +17,8 @@ class CouldNotCreateSocket : std::exception {};
 class AddressNotAvailable : std::exception {};
 class MessageTooLarge : std::exception {};
 class WouldBlock : std::exception {};
+
+enum Action { SEND, RECEIVE };
 
 class Socket {
 public:
@@ -47,6 +53,25 @@ public:
         close(fd_);
     }
 
+    std::vector<Action> allowedActions() {
+        struct pollfd fds[1];
+        fds[0] = { .fd = fd_, .events = POLLIN | POLLOUT };
+        poll(fds, 1, -1);
+
+        std::vector<Action> actions;
+
+        if (fds[0].revents & POLLIN) {
+            actions.push_back(RECEIVE);
+        }
+
+        if (fds[0].revents & POLLOUT) {
+            actions.push_back(SEND);
+        }
+
+        return actions;
+    }
+
+
     void send(ClientMessage &message, Address address) {
         send_(9, message, address);
     }
@@ -59,8 +84,15 @@ public:
         struct sockaddr_in client_addr;
         socklen_t addr_length = sizeof(client_addr);
         uint8_t buffer[9];
-        recvfrom(fd_, buffer, 9, 0, (struct sockaddr *)&client_addr,
+
+        int rv = recvfrom(fd_, buffer, 9, 0, (struct sockaddr *)&client_addr,
                 &addr_length);
+
+        if (rv == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                throw WouldBlock();
+            }
+        }
 
         in_addr_t address = client_addr.sin_addr.s_addr;
         in_port_t port = client_addr.sin_port;
@@ -71,8 +103,15 @@ public:
         struct sockaddr_in server_addr;
         socklen_t addr_length = sizeof(server_addr);
         uint8_t buffer[64 * 1024];
-        recvfrom(fd_, buffer, 64 * 1024, 0, (sockaddr *) &server_addr,
+
+        int rv = recvfrom(fd_, buffer, 64 * 1024, 0, (sockaddr *) &server_addr,
                 &addr_length);
+
+        if (rv == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                throw WouldBlock();
+            }
+        }
 
         in_addr_t address = server_addr.sin_addr.s_addr;
         in_port_t port = server_addr.sin_port;
