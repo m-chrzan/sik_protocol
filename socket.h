@@ -1,8 +1,6 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <iostream>
-
 #include <exception>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -58,7 +56,7 @@ public:
 
         if (rv < 0) {
             if (errno == EALREADY || errno == EADDRINUSE ||
-                    errno == EADDRNOTAVAIL) {
+                    errno == EADDRNOTAVAIL || errno == EACCES) {
                 throw AddressNotAvailable();
             }
         }
