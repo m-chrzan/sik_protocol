@@ -25,6 +25,14 @@ public:
         culprit_address(culprit_address) {}
 };
 
+class InvalidServerMessage : std::exception {
+public:
+    Address culprit_address;
+
+    InvalidServerMessage(Address culprit_address) :
+        culprit_address(culprit_address) {}
+};
+
 enum Action { SEND, RECEIVE };
 
 class Socket {
@@ -124,9 +132,13 @@ public:
             }
         }
 
-        in_addr_t address = server_addr.sin_addr.s_addr;
-        in_port_t port = server_addr.sin_port;
-        return std::make_pair(ServerMessage(buffer), Address(address, port));
+        Address address(server_addr.sin_addr.s_addr, server_addr.sin_port);
+
+        if (rv < 10) {
+            throw InvalidServerMessage(address);
+        }
+
+        return std::make_pair(ServerMessage(buffer), address);
     }
 
 private:

@@ -65,11 +65,17 @@ int main(int argc, char *argv[]) {
     client.send();
 
     while (1) {
-        std::pair<ServerMessage, Address> received = client.receive();
-        ServerMessage message = received.first;
-        std::cout << message.client_message.timestamp << " "
-                  << message.client_message.character << " "
-                  << message.contents << std::endl;
+        try {
+            std::pair<ServerMessage, Address> received = client.receive();
+            ServerMessage message = received.first;
+            std::cout << message.client_message.timestamp << " "
+                      << message.client_message.character << " "
+                      << message.contents << std::endl;
+        } catch (InvalidServerMessage e) {
+            std::cerr << "Invalid message sent from "
+                << e.culprit_address.to_string() << std::endl;
+        }
+
     }
 
 }
