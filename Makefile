@@ -4,6 +4,8 @@ CXXFLAGS=-Wall -g -O2
 SRCS=server.cc client.cc
 TESTS=test_socket.cc
 
+client: client.cc client.h
+
 test_socket: test_socket.cc socket.h
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
