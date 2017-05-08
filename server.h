@@ -37,7 +37,7 @@ public:
             update_active_time_(received.second, current_time);
         } catch (InvalidClientMessage e) {
             update_active_time_(e.culprit_address, current_time);
-            
+
             throw e;
         }
     }

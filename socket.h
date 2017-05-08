@@ -21,7 +21,7 @@ class InvalidClientMessage : std::exception {
 public:
     Address culprit_address;
 
-    InvalidClientMessage(Address culprit_address) : 
+    InvalidClientMessage(Address culprit_address) :
         culprit_address(culprit_address) {}
 };
 
@@ -102,7 +102,7 @@ public:
         }
 
         Address address(client_addr.sin_addr.s_addr, client_addr.sin_port);
-        
+
         if (rv != 9) {
             throw InvalidClientMessage(address);
         }
