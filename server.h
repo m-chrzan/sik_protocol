@@ -26,19 +26,20 @@ public:
     void receive() {
         time_t current_time = time(NULL);
 
-        std::pair<ClientMessage, Address> received =
-            socket_.receiveFromClient();
+        try {
+            std::pair<ClientMessage, Address> received =
+                socket_.receiveFromClient();
 
-        validate_(received.first, received.second);
+            validate_(received.first, received.second);
 
-        std::vector<Address> recipients =
-            find_different_active_clients_(current_time, received.second);
+            buffer_message_(current_time, received.first, received.second);
 
-        if (!recipients.empty()) {
-            buffer_.add_message(received.first, recipients);
+            update_active_time_(received.second, current_time);
+        } catch (InvalidClientMessage e) {
+            update_active_time_(e.culprit_address, current_time);
+            
+            throw e;
         }
-
-        active_clients_[received.second] = current_time;
     }
 
     void send() {
@@ -88,6 +89,19 @@ private:
     void validate_(ClientMessage message, Address address) {
         if (message.timestamp >= 71728934400) {
             throw  InvalidClientMessage(address);
+        }
+    }
+
+    void update_active_time_(Address address, time_t current_time) {
+        active_clients_[address] = current_time;
+    }
+
+    void buffer_message_(time_t current_time, ClientMessage message, Address address) {
+        std::vector<Address> recipients =
+            find_different_active_clients_(current_time, address);
+
+        if (!recipients.empty()) {
+            buffer_.add_message(message, recipients);
         }
     }
 };
