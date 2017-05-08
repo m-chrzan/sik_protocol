@@ -17,6 +17,13 @@ class CouldNotCreateSocket : std::exception {};
 class AddressNotAvailable : std::exception {};
 class MessageTooLarge : std::exception {};
 class WouldBlock : std::exception {};
+class InvalidClientMessage : std::exception {
+public:
+    Address culprit_address;
+
+    InvalidClientMessage(Address culprit_address) : 
+        culprit_address(culprit_address) {}
+};
 
 enum Action { SEND, RECEIVE };
 
@@ -83,9 +90,9 @@ public:
     std::pair<ClientMessage, Address> receiveFromClient() {
         struct sockaddr_in client_addr;
         socklen_t addr_length = sizeof(client_addr);
-        uint8_t buffer[9];
+        uint8_t buffer[10];
 
-        int rv = recvfrom(fd_, buffer, 9, 0, (struct sockaddr *)&client_addr,
+        int rv = recvfrom(fd_, buffer, 10, 0, (struct sockaddr *)&client_addr,
                 &addr_length);
 
         if (rv == -1) {
@@ -94,9 +101,13 @@ public:
             }
         }
 
-        in_addr_t address = client_addr.sin_addr.s_addr;
-        in_port_t port = client_addr.sin_port;
-        return std::make_pair(ClientMessage(buffer), Address(address, port));
+        Address address(client_addr.sin_addr.s_addr, client_addr.sin_port);
+        
+        if (rv < 8 || rv > 9) {
+            throw InvalidClientMessage(address);
+        }
+
+        return std::make_pair(ClientMessage(buffer), address);
     }
 
     std::pair<ServerMessage, Address> receiveFromServer() {

@@ -13,7 +13,15 @@ void check_argc(int argc, char *program_name) {
 }
 
 uint64_t get_timestamp(char *timestamp_str) {
-    return boost::lexical_cast<uint64_t>(timestamp_str);
+    uint64_t timestamp = boost::lexical_cast<uint64_t>(timestamp_str);
+
+    if (timestamp >= 71728934400) {
+        std::cerr << "Timestamp has to come from a year before 4243"
+                  << std::endl;
+        exit(1);
+    }
+
+    return timestamp;
 }
 
 in_port_t get_port(char *port_str) {

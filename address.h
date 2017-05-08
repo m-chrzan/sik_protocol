@@ -59,6 +59,19 @@ struct Address {
 
         return addr;
     }
+
+    std::string to_string() {
+        uint8_t split[4];
+        memcpy(split, &address, 4);
+
+        char buffer[32];
+        sprintf(buffer, "%u.%u.%u.%u:%u",
+                split[0], split[1], split[2], split[3], port);
+
+        std::string str(buffer);
+
+        return str;
+    }
 };
 
 #endif

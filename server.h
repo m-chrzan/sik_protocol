@@ -24,6 +24,8 @@ public:
         std::pair<ClientMessage, Address> received =
             socket_.receiveFromClient();
 
+        validate_(received.first, received.second);
+
         std::vector<Address> recipients =
             find_different_active_clients_(current_time, received.second);
 
@@ -32,8 +34,6 @@ public:
         }
 
         active_clients_[received.second] = current_time;
-
-        std::cout << "received" << std::endl;
     }
 
     void send() {
@@ -48,6 +48,22 @@ public:
 
     bool have_pending_messages() {
         return buffer_.have_pending_messages();
+    }
+
+    void clear_inactive_clients() {
+        time_t current_time = time(NULL);
+
+        std::vector<Address> stale_addresses;
+
+        for (auto client : active_clients_) {
+            if (current_time - client.second > 2 * 60) {
+                stale_addresses.push_back(client.first);
+            }
+        }
+
+        for (Address stale_address : stale_addresses) {
+            active_clients_.erase(stale_address);
+        }
     }
 
 private:
@@ -66,6 +82,12 @@ private:
         }
 
         return active_clients;
+    }
+
+    void validate_(ClientMessage message, Address address) {
+        if (message.timestamp >= 71728934400) {
+            throw  InvalidClientMessage(address);
+        }
     }
 };
 
