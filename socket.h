@@ -103,7 +103,7 @@ public:
 
         Address address(client_addr.sin_addr.s_addr, client_addr.sin_port);
         
-        if (rv < 8 || rv > 9) {
+        if (rv != 9) {
             throw InvalidClientMessage(address);
         }
 
