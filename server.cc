@@ -48,12 +48,15 @@ int main(int argc, char *argv[]) {
     Server server = parse_args(argc, argv);
 
     while (1) {
-        for (Action action : server.allowedActions()) {
+        for (Action action : server.allowed_actions()) {
             try {
-                if (action == RECEIVE) {
-                    server.receive();
-                } else if (server.have_pending_messages() && action == SEND) {
-                    server.send();
+                switch (action) {
+                    case RECEIVE:
+                        server.receive();
+                        break;
+                    case SEND:
+                        server.send();
+                        break;
                 }
             } catch (InvalidClientMessage e) {
                 std::cerr << "Invalid message sent from "

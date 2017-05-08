@@ -60,9 +60,9 @@ public:
         close(fd_);
     }
 
-    std::vector<Action> allowedActions() {
+    std::vector<Action> allowed_actions(short events) {
         struct pollfd fds[1];
-        fds[0] = { .fd = fd_, .events = POLLIN | POLLOUT };
+        fds[0] = { .fd = fd_, .events = events };
         poll(fds, 1, -1);
 
         std::vector<Action> actions;

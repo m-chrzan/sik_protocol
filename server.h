@@ -1,9 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <iostream>
-
 #include <map>
+#include <time.h>
 #include <vector>
 
 #include "socket.h"
@@ -14,8 +13,14 @@ public:
     Server(in_port_t port, std::string contents) :
         socket_(port), contents_(contents), buffer_(4096) {}
 
-    std::vector<Action> allowedActions() {
-        return socket_.allowedActions();
+    std::vector<Action> allowed_actions() {
+        short events = POLLIN;
+
+        if (buffer_.have_pending_messages()) {
+            events |= POLLOUT;
+        }
+
+        return socket_.allowed_actions(events);
     }
 
     void receive() {
@@ -44,10 +49,6 @@ public:
         socket_.send(full_message, next_message.second);
 
         buffer_.pop_next();
-    }
-
-    bool have_pending_messages() {
-        return buffer_.have_pending_messages();
     }
 
     void clear_inactive_clients() {
