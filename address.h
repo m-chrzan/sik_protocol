@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <string.h>
 
+class CouldNotResolveHostname : std::exception {};
+
 struct Address {
     /* address and port in network (big-endian) byte order */
     in_addr_t address;
@@ -31,7 +33,9 @@ struct Address {
         addr_hints.ai_addr = NULL;
         addr_hints.ai_canonname = NULL;
         addr_hints.ai_next = NULL;
-        getaddrinfo(host.c_str(), NULL, &addr_hints, &addr_result);
+        if (getaddrinfo(host.c_str(), NULL, &addr_hints, &addr_result) != 0) {
+            throw CouldNotResolveHostname();
+        }
 
         address =
             ((struct sockaddr_in*) (addr_result->ai_addr))->sin_addr.s_addr;

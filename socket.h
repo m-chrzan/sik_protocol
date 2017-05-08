@@ -9,18 +9,26 @@
 #include "address.h"
 #include "message.h"
 
+class CouldNotCreateSocket : std::exception {};
 class AddressNotAvailable : std::exception {};
+class MessageTooLarge : std::exception {};
+class WouldBlock : std::exception {};
 
 class Socket {
 public:
     Socket() {
         fd_ = socket(AF_INET, SOCK_DGRAM, 0);
         if (fd_ == -1) {
-            throw errno;
+            throw CouldNotCreateSocket();
         }
     }
 
-    Socket(in_port_t port) : Socket() {
+    Socket(in_port_t port) {
+        fd_ = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+        if (fd_ == -1) {
+            throw CouldNotCreateSocket();
+        }
+
         address_ = Address(htons(port));
 
         struct sockaddr_in my_addr = address_.create_sockaddr_struct();
@@ -40,23 +48,11 @@ public:
     }
 
     void send(ClientMessage &message, Address address) {
-        uint8_t buffer[9];
-        message.to_bytes(buffer);
-
-        struct sockaddr_in dest_addr = address.create_sockaddr_struct();
-
-        sendto(fd_, buffer, 9, 0, (struct sockaddr *)&dest_addr,
-                sizeof(dest_addr));
+        send_(9, message, address);
     }
 
     void send(ServerMessage &message, Address address) {
-        uint8_t buffer[64 * 1024];
-        size_t length = message.to_bytes(buffer);
-
-        struct sockaddr_in dest_addr = address.create_sockaddr_struct();
-
-        sendto(fd_, buffer, length, 0, (struct sockaddr *)&dest_addr,
-                sizeof(dest_addr));
+        send_(64 * 1024, message, address);
     }
 
     std::pair<ClientMessage, Address> receiveFromClient() {
@@ -86,6 +82,24 @@ public:
 private:
     int fd_;
     Address address_;
+
+    void send_(int buffer_size, Message& message, Address address) {
+        uint8_t buffer[buffer_size];
+        size_t length = message.to_bytes(buffer);
+
+        struct sockaddr_in dest_addr = address.create_sockaddr_struct();
+
+        int rv = sendto(fd_, buffer, length, 0, (struct sockaddr *)&dest_addr,
+                sizeof(dest_addr));
+
+        if (rv == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                throw WouldBlock();
+            } else if (errno == EMSGSIZE) {
+                throw MessageTooLarge();
+            }
+        }
+    }
 };
 
 #endif
