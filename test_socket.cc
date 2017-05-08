@@ -66,13 +66,16 @@ void test_server_message_communication() {
     ServerMessage to_send(client_message, "DEF");
     s1.send(to_send, destination);
 
-    ServerMessage message = s2.receiveFromServer();
+    std::pair<ServerMessage, Address> received = s2.receiveFromServer();
+    ServerMessage message = received.first;
+    Address address = received.second;
 
     check_equal<uint64_t>(message.client_message.timestamp, 0x42,
             "Got the correct timestamp.");
     check_equal<char>(message.client_message.character, 'c',
             "Got the correct character.");
     check_equal<std::string>(message.contents, "DEF", "Got the correct string");
+    check_equal<uint16_t>(ntohs(address.port), 2222, "Got the correct port.");
 }
 
 int main() {

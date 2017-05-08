@@ -61,8 +61,8 @@ public:
 
     std::pair<ClientMessage, Address> receiveFromClient() {
         struct sockaddr_in client_addr;
-        uint8_t buffer[9];
         socklen_t addr_length = sizeof(client_addr);
+        uint8_t buffer[9];
         recvfrom(fd_, buffer, 9, 0, (struct sockaddr *)&client_addr,
                 &addr_length);
 
@@ -71,11 +71,16 @@ public:
         return std::make_pair(ClientMessage(buffer), Address(address, port));
     }
 
-    ServerMessage receiveFromServer() {
+    std::pair<ServerMessage, Address> receiveFromServer() {
+        struct sockaddr_in server_addr;
+        socklen_t addr_length = sizeof(server_addr);
         uint8_t buffer[64 * 1024];
-        recvfrom(fd_, buffer, 64 * 1024, 0, NULL, NULL);
+        recvfrom(fd_, buffer, 64 * 1024, 0, (sockaddr *) &server_addr,
+                &addr_length);
 
-        return ServerMessage(buffer);
+        in_addr_t address = server_addr.sin_addr.s_addr;
+        in_port_t port = server_addr.sin_port;
+        return std::make_pair(ServerMessage(buffer), Address(address, port));
     }
 
 private:

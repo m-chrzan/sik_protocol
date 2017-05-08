@@ -1,5 +1,6 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
+
 #include "client.h"
 
 void check_argc(int argc, char *program_name) {
@@ -42,7 +43,8 @@ int main(int argc, char *argv[]) {
     client.send();
 
     while (1) {
-        ServerMessage message = client.receive();
+        std::pair<ServerMessage, Address> received = client.receive();
+        ServerMessage message = received.first;
         std::cout << message.client_message.timestamp << " "
                   << message.client_message.character << " "
                   << message.contents << std::endl;

@@ -15,7 +15,7 @@ public:
         socket_.send(message, server_address_);
     }
 
-    ServerMessage receive() {
+    std::pair<ServerMessage, Address> receive() {
         return socket_.receiveFromServer();
     }
 
