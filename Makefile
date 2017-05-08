@@ -4,6 +4,8 @@ CXXFLAGS=-Wall -g -O2
 SRCS=server.cc client.cc
 TESTS=test_socket.cc
 
+all: client test_socket
+
 client: client.cc client.h
 
 test_socket: test_socket.cc socket.h
@@ -11,7 +13,7 @@ test_socket: test_socket.cc socket.h
 
 tests: test_socket
 
-.PHONY: tests run_tests clean
+.PHONY: tests run_tests clean all
 
 clean:
 	rm -f *.o $(SRCS:.cc=) $(TESTS:.cc=)
