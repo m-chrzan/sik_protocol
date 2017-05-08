@@ -25,6 +25,11 @@ in_port_t get_port(char *port_str) {
 std::string get_contents(char *filename) {
     int file = open(filename, O_RDONLY);
 
+    if (file == -1) {
+        std::cerr << "Could not open file." << std::endl;
+        exit(1);
+    }
+
     char buffer[64 * 1024];
 
     read(file, buffer, 64 * 1024);
